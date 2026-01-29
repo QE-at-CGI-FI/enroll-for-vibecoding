@@ -66,7 +66,6 @@ export default function EnrollmentStats({ refreshTrigger }: EnrollmentStatsProps
           <li>17 spots for women and non-binary participants</li>
           <li>When more than 17 women try to enroll, they are added to the waiting queue</li>
           <li>When more than 4 men try to enroll, they are informed that spots have been filled</li>
-          <li>After women/non-binary spots are full, remaining spots are available for men</li>
         </ul>
       </div>
     </div>

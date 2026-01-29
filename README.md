@@ -4,7 +4,7 @@ A web application for enrolling participants to a vibe coding workshop with quot
 
 ## Features
 
-- **Quota-based Enrollment**: 
+- **Quota-based Enrollment**:
   - Total capacity: 20 participants
   - 3 spots reserved for men (quota)
   - 17 spots for women and non-binary participants
@@ -24,11 +24,13 @@ A web application for enrolling participants to a vibe coding workshop with quot
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -48,7 +50,6 @@ npm start
 2. **Men Quota**: 3 spots are reserved for men
 3. **Women/Non-binary Spots**: 17 spots are available for women and non-binary participants
 4. **Waiting Queue**: When all 17 women/non-binary spots are filled, new women/non-binary applicants are added to a waiting queue
-5. **Remaining Spots**: After women/non-binary spots are full, the remaining spots (up to 3) are available for men
 
 ## Technology Stack
 
@@ -77,4 +78,4 @@ npm start
 ## Notes
 
 - The current implementation uses in-memory storage, so data will be lost on page refresh
-- For production use, integrate with a database or backend API for persistent storage 
+- For production use, integrate with a database or backend API for persistent storage

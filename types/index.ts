@@ -3,7 +3,6 @@ export type ParticipationType = 'local' | 'remote';
 export interface Participant {
   id: string;
   name: string;
-  email: string;
   needsDiversityQuota: boolean; // true if they need the men's diversity quota
   participationType: ParticipationType;
   enrolledAt: Date;

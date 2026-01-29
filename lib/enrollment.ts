@@ -46,7 +46,7 @@ export class EnrollmentService {
 
     // Check if already at capacity
     if (stats.total >= MAX_CAPACITY) {
-      return { canEnroll: false, reason: 'Workshop is full' };
+      return { canEnroll: false, reason: 'Diversity quota full' };
     }
 
     // For those needing diversity quota (men)
@@ -63,7 +63,7 @@ export class EnrollmentService {
         if (remainingSpots > 0) {
           return { canEnroll: true };
         }
-        return { canEnroll: false, reason: 'Workshop is full' };
+        return { canEnroll: false, reason: 'Diversity quota full' };
       }
       // If quota is full and women spots aren't full yet, don't allow more men
       // This covers the "more than 4 men try to enroll" case - the 4th+ man gets this message
@@ -104,12 +104,6 @@ export class EnrollmentService {
         };
       }
       return { success: false, message: canEnrollResult.reason || 'Cannot enroll' };
-    }
-
-    // Check for duplicate email
-    if (this.state.enrolled.some(p => p.email === participant.email) ||
-        this.state.waitingQueue.some(p => p.email === participant.email)) {
-      return { success: false, message: 'This email is already enrolled or in the waiting queue' };
     }
 
     // Enroll the participant

@@ -37,7 +37,6 @@ export default function ParticipantList({ refreshTrigger }: ParticipantListProps
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">{participant.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{participant.email}</div>
                     <div className="flex gap-2 mt-2">
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         participant.needsDiversityQuota
@@ -81,7 +80,6 @@ export default function ParticipantList({ refreshTrigger }: ParticipantListProps
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">{participant.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{participant.email}</div>
                     <div className="flex gap-2 mt-2">
                       <span className="px-2 py-1 text-xs rounded-full bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200">
                         Women/Non-binary

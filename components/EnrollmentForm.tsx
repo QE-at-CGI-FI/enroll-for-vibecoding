@@ -10,7 +10,6 @@ interface EnrollmentFormProps {
 
 export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [needsDiversityQuota, setNeedsDiversityQuota] = useState<boolean>(false);
   const [participationType, setParticipationType] = useState<ParticipationType>('local');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -24,7 +23,6 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
     const service = getEnrollmentService();
     const result = service.enroll({
       name,
-      email,
       needsDiversityQuota,
       participationType,
     });
@@ -32,7 +30,6 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
     if (result.success) {
       setMessage({ type: 'success', text: result.message });
       setName('');
-      setEmail('');
       setNeedsDiversityQuota(false);
       onEnroll();
     } else {
@@ -56,20 +53,6 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email *
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
