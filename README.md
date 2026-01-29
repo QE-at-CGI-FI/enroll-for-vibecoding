@@ -12,9 +12,10 @@ A web application for enrolling participants to a vibe coding workshop with quot
   - After women/non-binary spots are full, remaining spots become available for men
 
 - **Data Persistence**:
-  - Enrollment data persists across browser sessions using localStorage
-  - Cross-device sync capability (can be enhanced with cloud services)
-  - Refresh button to sync latest data
+  - Real-time data persistence using Supabase PostgreSQL database
+  - Cross-device sync with automatic fallback to localStorage
+  - Refresh button to sync latest data from the cloud
+  - Offline support with local storage backup
 
 - **Real-time Status Display**: See enrollment statistics, available spots, and waiting queue length
 - **Participant Management**: View all enrolled participants and those in the waiting queue
@@ -25,6 +26,7 @@ A web application for enrolling participants to a vibe coding workshop with quot
 ### Prerequisites
 
 - Node.js 25.5.0+ and npm (or yarn/pnpm)
+- Supabase account and project (free tier available)
 
 ### Installation
 
@@ -34,7 +36,21 @@ A web application for enrolling participants to a vibe coding workshop with quot
 npm install
 ```
 
-2. Run the development server:
+2. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Go to Project Settings → API to get your URL and anon key
+   - Create a `.env.local` file in the project root:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+3. Set up the database:
+   - Go to the SQL Editor in your Supabase dashboard
+   - Run the SQL commands from `supabase-setup.sql`
+
+4. Run the development server:
 
 ```bash
 npm run dev
@@ -81,6 +97,7 @@ You can also trigger deployment manually from the **Actions** tab in your GitHub
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first CSS framework
 - **React** - UI library
+- **Supabase** - Backend-as-a-Service with PostgreSQL database
 
 ## Project Structure
 
@@ -94,19 +111,22 @@ You can also trigger deployment manually from the **Actions** tab in your GitHub
 │   ├── EnrollmentStats.tsx # Statistics display component
 │   └── ParticipantList.tsx # Participant list component
 ├── lib/
-│   └── enrollment.ts       # Enrollment logic and service
-└── types/
-    └── index.ts            # TypeScript type definitions
+│   ├── enrollment.ts       # Enrollment logic and service
+│   └── supabase.ts         # Supabase client configuration
+├── types/
+│   └── index.ts            # TypeScript type definitions
+├── supabase-setup.sql      # Database schema setup script
+└── .env.local              # Environment variables (not in git)
 ```
 
 ## Notes
 
-- **Data Persistence**: The application now uses localStorage for persistent data storage across browser sessions
-- **Cross-device Access**: Data can be accessed from different browsers and computers on the same device
-- **Sync Feature**: Use the "Refresh Data" button to sync with the latest enrollment data
-- **Cloud Sync**: For true cross-device synchronization across different computers, the system can be easily extended with services like:
-  - Firebase Firestore (free tier: 50,000 reads/day)
-  - Supabase (free tier: 50,000 API requests/month)
-  - Custom backend API with database
+- **Data Persistence**: The application uses Supabase for real-time cloud data storage with localStorage as fallback
+- **Cross-device Access**: Full synchronization across all devices and browsers using Supabase backend
+- **Sync Feature**: Automatic sync with manual "Refresh Data" button for latest enrollment data
+- **Offline Support**: Application continues to work offline using localStorage, syncs when connection is restored
+- **Database**: Uses PostgreSQL via Supabase with proper indexing and Row Level Security policies
+- **Free Tier**: Supabase free tier provides 50,000 API requests/month, 500MB database storage
 - The project is configured with `basePath: '/enroll-for-vibecoding'` for GitHub Pages deployment
 - When running locally with `npm run dev`, the app will be available at http://localhost:3000 (basePath is ignored in development)
+- **Environment Variables**: Make sure to add `.env.local` to your `.gitignore` file to keep your Supabase credentials secure

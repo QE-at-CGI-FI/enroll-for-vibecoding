@@ -1,10 +1,13 @@
 import { Participant, EnrollmentState, MAX_CAPACITY, MEN_QUOTA, WOMEN_NON_BINARY_SPOTS } from '@/types';
+import { supabase } from './supabase';
 
-// Simple persistence using localStorage + JSONBin.io for cross-device sync
+// Supabase table names
+const ENROLLED_TABLE = 'enrolled_participants';
+const WAITING_QUEUE_TABLE = 'waiting_queue_participants';
+
+// Fallback to localStorage for offline support
 const STORAGE_KEY = 'vibe-coding-enrollment';
 
-// Using a simpler approach - localStorage with periodic sync via a free service
-// For production, consider Firebase, Supabase, or similar services
 interface StorageData {
   state: EnrollmentState;
   lastUpdated: string;
@@ -19,16 +22,47 @@ export class EnrollmentService {
       enrolled: [],
       waitingQueue: [],
     };
-    this.loadFromStorage();
+    this.loadFromSupabase();
   }
 
-  // Load data from localStorage first, then sync with cloud
-  private async loadFromStorage(): Promise<void> {
+  // Load data from Supabase with localStorage fallback
+  private async loadFromSupabase(): Promise<void> {
     if (this.isLoading) return;
     this.isLoading = true;
 
     try {
-      // Try localStorage first for immediate load
+      // First try to load from Supabase
+      const [enrolledResponse, waitingResponse] = await Promise.all([
+        supabase.from(ENROLLED_TABLE).select('*').order('enrolled_at', { ascending: true }),
+        supabase.from(WAITING_QUEUE_TABLE).select('*').order('enrolled_at', { ascending: true })
+      ]);
+
+      if (enrolledResponse.error || waitingResponse.error) {
+        console.warn('Supabase error, falling back to localStorage:', 
+                    enrolledResponse.error || waitingResponse.error);
+        this.loadFromLocalStorage();
+      } else {
+        // Successfully loaded from Supabase
+        this.state = {
+          enrolled: (enrolledResponse.data || []).map(this.mapSupabaseToParticipant),
+          waitingQueue: (waitingResponse.data || []).map(this.mapSupabaseToParticipant)
+        };
+        
+        // Update localStorage with latest data
+        this.saveToLocalStorage();
+        console.log('Data loaded from Supabase');
+      }
+    } catch (error) {
+      console.warn('Failed to load from Supabase, using localStorage:', error);
+      this.loadFromLocalStorage();
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // Fallback to localStorage
+  private loadFromLocalStorage(): void {
+    try {
       const localData = localStorage.getItem(STORAGE_KEY);
       if (localData) {
         const parsed: StorageData = JSON.parse(localData);
@@ -36,46 +70,37 @@ export class EnrollmentService {
           enrolled: parsed.state.enrolled.map(p => ({...p, enrolledAt: new Date(p.enrolledAt)})),
           waitingQueue: parsed.state.waitingQueue.map(p => ({...p, enrolledAt: new Date(p.enrolledAt)}))
         };
+        console.log('Data loaded from localStorage');
       }
-
-      // Then try to sync with cloud storage
-      await this.syncFromCloud();
     } catch (error) {
-      console.warn('Failed to load from storage:', error);
-    } finally {
-      this.isLoading = false;
+      console.warn('Failed to load from localStorage:', error);
     }
   }
 
-  // Sync from cloud storage using GitHub JSON server
-  private async syncFromCloud(): Promise<void> {
-    try {
-      // Using My JSON Server (free GitHub-based JSON API)
-      // URL format: https://my-json-server.typicode.com/{username}/{repo}
-      const response = await fetch('https://my-json-server.typicode.com/qe-at-cgi-fi/enroll-for-vibecoding/enrollment');
-      
-      if (response.ok) {
-        const cloudData = await response.json();
-        if (cloudData && cloudData.enrolled && cloudData.waitingQueue) {
-          const localData = localStorage.getItem(STORAGE_KEY);
-          
-          // Use cloud data if it's newer than local data
-          if (!localData || new Date(cloudData.lastUpdated || 0) > new Date(JSON.parse(localData).lastUpdated || 0)) {
-            this.state = {
-              enrolled: cloudData.enrolled.map((p: any) => ({...p, enrolledAt: new Date(p.enrolledAt)})),
-              waitingQueue: cloudData.waitingQueue.map((p: any) => ({...p, enrolledAt: new Date(p.enrolledAt)}))
-            };
-            this.saveToLocalStorage();
-            console.log('Synced data from cloud storage');
-          }
-        }
-      }
-    } catch (error) {
-      console.warn('Cloud sync not available - using local storage only:', error);
-    }
+  // Convert Supabase row to Participant object
+  private mapSupabaseToParticipant(row: any): Participant {
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      needsDiversityQuota: row.needs_diversity_quota,
+      participationType: row.participation_type,
+      enrolledAt: new Date(row.enrolled_at)
+    };
   }
 
-  // Save to localStorage
+  // Convert Participant to Supabase row
+  private mapParticipantToSupabase(participant: Participant) {
+    return {
+      id: participant.id,
+      name: participant.name,
+      email: participant.email,
+      needs_diversity_quota: participant.needsDiversityQuota,
+      participation_type: participant.participationType,
+      enrolled_at: participant.enrolledAt.toISOString()
+    };
+  }
+  // Save to localStorage as backup
   private saveToLocalStorage(): void {
     try {
       const storageData: StorageData = {
@@ -88,22 +113,57 @@ export class EnrollmentService {
     }
   }
 
-  // Save to cloud storage (simplified version)
-  private async saveToCloud(): Promise<void> {
+  // Save data to Supabase
+  private async saveToSupabase(): Promise<void> {
     try {
-      // For simplicity, we'll just log this operation
-      // In a real implementation, this would sync to a cloud service
-      console.log('Data saved locally (cloud sync not implemented)');
+      // Clear existing data and insert new data
+      await Promise.all([
+        supabase.from(ENROLLED_TABLE).delete().neq('id', 'dummy'),
+        supabase.from(WAITING_QUEUE_TABLE).delete().neq('id', 'dummy')
+      ]);
+
+      // Insert enrolled participants
+      if (this.state.enrolled.length > 0) {
+        const enrolledData = this.state.enrolled.map(this.mapParticipantToSupabase);
+        const { error: enrolledError } = await supabase
+          .from(ENROLLED_TABLE)
+          .insert(enrolledData);
+
+        if (enrolledError) {
+          throw enrolledError;
+        }
+      }
+
+      // Insert waiting queue participants
+      if (this.state.waitingQueue.length > 0) {
+        const waitingData = this.state.waitingQueue.map(this.mapParticipantToSupabase);
+        const { error: waitingError } = await supabase
+          .from(WAITING_QUEUE_TABLE)
+          .insert(waitingData);
+
+        if (waitingError) {
+          throw waitingError;
+        }
+      }
+
+      console.log('Data saved to Supabase');
     } catch (error) {
-      console.warn('Cloud save not available:', error);
+      console.warn('Failed to save to Supabase:', error);
+      throw error;
     }
   }
 
-  // Save data to localStorage (and optionally cloud)
+  // Save data to both Supabase and localStorage
   private async saveData(): Promise<void> {
+    // Always save to localStorage first (for immediate backup)
     this.saveToLocalStorage();
-    // Cloud sync disabled for simplicity - using only localStorage
-    // await this.saveToCloud();
+    
+    try {
+      // Then save to Supabase
+      await this.saveToSupabase();
+    } catch (error) {
+      console.warn('Supabase save failed, data saved locally only:', error);
+    }
   }
 
   getState(): EnrollmentState {
@@ -221,9 +281,9 @@ export class EnrollmentService {
     await this.saveData();
   }
 
-  // Manually refresh data from cloud storage
+  // Manually refresh data from Supabase
   async refresh(): Promise<void> {
-    await this.syncFromCloud();
+    await this.loadFromSupabase();
   }
 
   // Clear all enrollment data (for admin/testing purposes)
