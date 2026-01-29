@@ -44,6 +44,23 @@ npm run build
 npm start
 ```
 
+### GitHub Pages Deployment
+
+This project includes a GitHub Actions workflow that automatically deploys the application to GitHub Pages when changes are pushed to the `main` branch.
+
+#### Setup Instructions:
+
+1. Push your code to a GitHub repository
+2. Go to your repository's **Settings** → **Pages**
+3. Under **Source**, select **GitHub Actions**
+4. The workflow will automatically trigger on the next push to `main`
+
+The deployed site will be available at: `https://<username>.github.io/<repository-name>`
+
+#### Manual Deployment:
+
+You can also trigger deployment manually from the **Actions** tab in your GitHub repository.
+
 ## Enrollment Rules
 
 1. **Total Capacity**: Maximum 20 participants
