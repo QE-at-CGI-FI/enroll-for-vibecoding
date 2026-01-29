@@ -11,6 +11,10 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        cgi: {
+          red: '#e31937',
+          purple: '#5236ab',
+        },
       },
     },
   },

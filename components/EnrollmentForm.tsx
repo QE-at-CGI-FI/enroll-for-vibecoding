@@ -40,8 +40,8 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Enroll for Workshop</h2>
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Enroll for Workshop</h2>
       
       <div className="space-y-4">
         <div>
@@ -54,7 +54,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cgi-purple focus:border-cgi-purple dark:bg-black dark:text-white"
           />
         </div>
 
@@ -70,7 +70,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
                 checked={needsDiversityQuota === true}
                 onChange={() => setNeedsDiversityQuota(true)}
                 required
-                className="mr-2"
+                className="mr-2 accent-cgi-purple"
               />
               <span className="text-gray-700 dark:text-gray-300">Yes</span>
             </label>
@@ -81,7 +81,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
                 checked={needsDiversityQuota === false}
                 onChange={() => setNeedsDiversityQuota(false)}
                 required
-                className="mr-2"
+                className="mr-2 accent-cgi-purple"
               />
               <span className="text-gray-700 dark:text-gray-300">No</span>
             </label>
@@ -97,7 +97,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
             value={participationType}
             onChange={(e) => setParticipationType(e.target.value as ParticipationType)}
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cgi-purple focus:border-cgi-purple dark:bg-black dark:text-white"
           >
             <option value="local">Local</option>
             <option value="remote">Remote</option>
@@ -109,7 +109,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
             className={`p-3 rounded-md ${
               message.type === 'success'
                 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                : 'bg-red-100 dark:bg-red-900 text-cgi-red dark:text-red-200 border border-cgi-red'
             }`}
           >
             {message.text}
@@ -119,7 +119,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+          className="w-full bg-cgi-purple hover:bg-cgi-purple/90 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
         >
           {isSubmitting ? 'Enrolling...' : 'Enroll'}
         </button>

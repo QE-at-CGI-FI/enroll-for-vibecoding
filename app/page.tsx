@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import EnrollmentForm from '@/components/EnrollmentForm';
 import EnrollmentStats from '@/components/EnrollmentStats';
 import ParticipantList from '@/components/ParticipantList';
@@ -13,9 +14,19 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-gray-100 to-white dark:from-black dark:to-gray-900 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <Image
+              src="/logo.png"
+              alt="CGI Logo"
+              width={120}
+              height={80}
+              className="mr-4"
+              priority
+            />
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
             Vibe Coding Workshop
           </h1>

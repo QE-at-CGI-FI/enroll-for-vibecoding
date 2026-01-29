@@ -21,8 +21,8 @@ export default function ParticipantList({ refreshTrigger }: ParticipantListProps
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+      <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">
           Enrolled Participants ({state.enrolled.length})
         </h2>
         {state.enrolled.length === 0 ? (
@@ -32,23 +32,23 @@ export default function ParticipantList({ refreshTrigger }: ParticipantListProps
             {state.enrolled.map((participant: Participant) => (
               <div
                 key={participant.id}
-                className="border border-gray-200 dark:border-gray-700 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                className="border border-gray-200 dark:border-gray-700 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{participant.name}</div>
+                    <div className="font-semibold text-black dark:text-white">{participant.name}</div>
                     <div className="flex gap-2 mt-2">
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         participant.needsDiversityQuota
-                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                          : 'bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200'
+                          ? 'bg-cgi-purple/20 dark:bg-cgi-purple/30 text-cgi-purple dark:text-cgi-purple border border-cgi-purple/30'
+                          : 'bg-cgi-red/20 dark:bg-cgi-red/30 text-cgi-red dark:text-cgi-red border border-cgi-red/30'
                       }`}>
                         {participant.needsDiversityQuota ? 'Diversity Quota' : 'Women/Non-binary'}
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
+                      <span className={`px-2 py-1 text-xs rounded-full border ${
                         participant.participationType === 'local'
-                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                          : 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+                          ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600'
+                          : 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white border-gray-400 dark:border-gray-500'
                       }`}>
                         {participant.participationType}
                       </span>
@@ -64,8 +64,8 @@ export default function ParticipantList({ refreshTrigger }: ParticipantListProps
         )}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+      <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">
           Waiting Queue ({state.waitingQueue.length})
         </h2>
         {state.waitingQueue.length === 0 ? (
@@ -75,19 +75,19 @@ export default function ParticipantList({ refreshTrigger }: ParticipantListProps
             {state.waitingQueue.map((participant: Participant) => (
               <div
                 key={participant.id}
-                className="border border-yellow-200 dark:border-yellow-800 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20"
+                className="border border-cgi-red/40 dark:border-cgi-red/60 p-3 rounded-lg bg-cgi-red/5 dark:bg-cgi-red/10"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{participant.name}</div>
+                    <div className="font-semibold text-black dark:text-white">{participant.name}</div>
                     <div className="flex gap-2 mt-2">
-                      <span className="px-2 py-1 text-xs rounded-full bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200">
+                      <span className="px-2 py-1 text-xs rounded-full bg-cgi-red/20 dark:bg-cgi-red/30 text-cgi-red dark:text-cgi-red border border-cgi-red/30">
                         Women/Non-binary
                       </span>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
+                      <span className={`px-2 py-1 text-xs rounded-full border ${
                         participant.participationType === 'local'
-                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                          : 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+                          ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600'
+                          : 'bg-gray-200 dark:bg-gray-700 text-black dark:text-white border-gray-400 dark:border-gray-500'
                       }`}>
                         {participant.participationType}
                       </span>
