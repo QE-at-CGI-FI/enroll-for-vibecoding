@@ -11,6 +11,11 @@ A web application for enrolling participants to a vibe coding workshop with quot
   - When women/non-binary spots are full, they are added to a waiting queue
   - After women/non-binary spots are full, remaining spots become available for men
 
+- **Data Persistence**:
+  - Enrollment data persists across browser sessions using localStorage
+  - Cross-device sync capability (can be enhanced with cloud services)
+  - Refresh button to sync latest data
+
 - **Real-time Status Display**: See enrollment statistics, available spots, and waiting queue length
 - **Participant Management**: View all enrolled participants and those in the waiting queue
 - **Modern UI**: Responsive design with dark mode support
@@ -96,7 +101,12 @@ You can also trigger deployment manually from the **Actions** tab in your GitHub
 
 ## Notes
 
-- The current implementation uses in-memory storage, so data will be lost on page refresh
-- For production use, integrate with a database or backend API for persistent storage
+- **Data Persistence**: The application now uses localStorage for persistent data storage across browser sessions
+- **Cross-device Access**: Data can be accessed from different browsers and computers on the same device
+- **Sync Feature**: Use the "Refresh Data" button to sync with the latest enrollment data
+- **Cloud Sync**: For true cross-device synchronization across different computers, the system can be easily extended with services like:
+  - Firebase Firestore (free tier: 50,000 reads/day)
+  - Supabase (free tier: 50,000 API requests/month)
+  - Custom backend API with database
 - The project is configured with `basePath: '/enroll-for-vibecoding'` for GitHub Pages deployment
 - When running locally with `npm run dev`, the app will be available at http://localhost:3000 (basePath is ignored in development)

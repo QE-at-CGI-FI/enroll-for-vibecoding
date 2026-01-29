@@ -20,20 +20,25 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
     setIsSubmitting(true);
     setMessage(null);
 
-    const service = getEnrollmentService();
-    const result = service.enroll({
-      name,
-      needsDiversityQuota,
-      participationType,
-    });
+    try {
+      const service = getEnrollmentService();
+      const result = await service.enroll({
+        name,
+        needsDiversityQuota,
+        participationType,
+      });
 
-    if (result.success) {
-      setMessage({ type: 'success', text: result.message });
-      setName('');
-      setNeedsDiversityQuota(false);
-      onEnroll();
-    } else {
-      setMessage({ type: 'error', text: result.message });
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message });
+        setName('');
+        setNeedsDiversityQuota(false);
+        onEnroll();
+      } else {
+        setMessage({ type: 'error', text: result.message });
+      }
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      setMessage({ type: 'error', text: 'Failed to enroll. Please try again.' });
     }
 
     setIsSubmitting(false);
