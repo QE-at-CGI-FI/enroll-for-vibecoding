@@ -7,7 +7,6 @@ const nextConfig = {
   },
   ...(process.env.NODE_ENV === 'production' && {
     basePath: '/enroll-for-vibecoding',
-    assetPrefix: '/enroll-for-vibecoding/',
   }),
 };
 
