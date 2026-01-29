@@ -5,7 +5,6 @@
 CREATE TABLE IF NOT EXISTS enrolled_participants (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    email TEXT NOT NULL,
     needs_diversity_quota BOOLEAN NOT NULL,
     participation_type TEXT NOT NULL CHECK (participation_type IN ('local', 'remote')),
     enrolled_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -17,7 +16,6 @@ CREATE TABLE IF NOT EXISTS enrolled_participants (
 CREATE TABLE IF NOT EXISTS waiting_queue_participants (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    email TEXT NOT NULL,
     needs_diversity_quota BOOLEAN NOT NULL,
     participation_type TEXT NOT NULL CHECK (participation_type IN ('local', 'remote')),
     enrolled_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -58,5 +56,3 @@ CREATE POLICY "Allow public delete on waiting_queue_participants" ON waiting_que
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_enrolled_participants_enrolled_at ON enrolled_participants (enrolled_at);
 CREATE INDEX IF NOT EXISTS idx_waiting_queue_participants_enrolled_at ON waiting_queue_participants (enrolled_at);
-CREATE INDEX IF NOT EXISTS idx_enrolled_participants_email ON enrolled_participants (email);
-CREATE INDEX IF NOT EXISTS idx_waiting_queue_participants_email ON waiting_queue_participants (email);
