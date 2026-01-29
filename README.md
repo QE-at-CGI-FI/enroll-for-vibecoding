@@ -57,6 +57,8 @@ This project includes a GitHub Actions workflow that automatically deploys the a
 
 The deployed site will be available at: `https://<username>.github.io/<repository-name>`
 
+**Current deployment:** https://qe-at-cgi-fi.github.io/enroll-for-vibecoding/
+
 #### Manual Deployment:
 
 You can also trigger deployment manually from the **Actions** tab in your GitHub repository.
@@ -96,3 +98,5 @@ You can also trigger deployment manually from the **Actions** tab in your GitHub
 
 - The current implementation uses in-memory storage, so data will be lost on page refresh
 - For production use, integrate with a database or backend API for persistent storage
+- The project is configured with `basePath: '/enroll-for-vibecoding'` for GitHub Pages deployment
+- When running locally with `npm run dev`, the app will be available at http://localhost:3000 (basePath is ignored in development)
