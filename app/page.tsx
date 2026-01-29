@@ -57,7 +57,7 @@ export default function Home() {
               alt="CGI Logo"
               width={120}
               height={80}
-              className="mr-4"
+              className="mr-4 logo-image"
               priority
             />
           </div>

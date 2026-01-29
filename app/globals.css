@@ -25,3 +25,19 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Fix for Safari logo rotation issue */
+img {
+  image-orientation: from-image;
+  -webkit-transform: none;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure consistent logo display across browsers */
+img[alt="CGI Logo"],
+.logo-image {
+  transform: none !important;
+  -webkit-transform: none !important;
+  image-orientation: none;
+  -webkit-image-orientation: none;
+}
