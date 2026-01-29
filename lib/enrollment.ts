@@ -31,6 +31,14 @@ export class EnrollmentService {
     this.isLoading = true;
 
     try {
+      // Check if Supabase is available
+      if (!supabase) {
+        console.log('Supabase not configured, using localStorage only');
+        this.loadFromLocalStorage();
+        this.isLoading = false;
+        return;
+      }
+
       // First try to load from Supabase
       const [enrolledResponse, waitingResponse] = await Promise.all([
         supabase.from(ENROLLED_TABLE).select('*').order('enrolled_at', { ascending: true }),
@@ -113,6 +121,11 @@ export class EnrollmentService {
 
   // Save data to Supabase
   private async saveToSupabase(): Promise<void> {
+    if (!supabase) {
+      console.log('Supabase not configured, skipping sync');
+      return;
+    }
+    
     try {
       // Clear existing data and insert new data
       await Promise.all([
