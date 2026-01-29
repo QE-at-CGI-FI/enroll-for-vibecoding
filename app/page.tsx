@@ -53,7 +53,7 @@ export default function Home() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <Image
-              src="/logo.png"
+              src={`${process.env.NODE_ENV === 'production' ? '/enroll-for-vibecoding' : ''}/logo.png`}
               alt="CGI Logo"
               width={120}
               height={80}
