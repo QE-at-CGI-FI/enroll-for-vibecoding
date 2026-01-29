@@ -82,7 +82,6 @@ export class EnrollmentService {
     return {
       id: row.id,
       name: row.name,
-      email: row.email,
       needsDiversityQuota: row.needs_diversity_quota,
       participationType: row.participation_type,
       enrolledAt: new Date(row.enrolled_at)
@@ -94,7 +93,6 @@ export class EnrollmentService {
     return {
       id: participant.id,
       name: participant.name,
-      email: participant.email,
       needs_diversity_quota: participant.needsDiversityQuota,
       participation_type: participant.participationType,
       enrolled_at: participant.enrolledAt.toISOString()
