@@ -19,7 +19,7 @@ A web application for enrolling participants to a vibe coding workshop with quot
 
 ### Prerequisites
 
-- Node.js 18+ and npm (or yarn/pnpm)
+- Node.js 25.5.0+ and npm (or yarn/pnpm)
 
 ### Installation
 
