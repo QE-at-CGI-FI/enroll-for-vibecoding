@@ -6,6 +6,7 @@ import EnrollmentForm from '@/components/EnrollmentForm';
 import EnrollmentStats from '@/components/EnrollmentStats';
 import ParticipantList from '@/components/ParticipantList';
 import { initializeEnrollmentService, getEnrollmentService } from '@/lib/enrollment';
+import { EVENT_DATE } from '@/types';
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -64,7 +65,15 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
             Vibe Coding Workshop
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
+            {EVENT_DATE.toLocaleDateString('en-GB', { 
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+          <p className="text-lg text-gray-600 dark:text-gray-300">
             Enrollment System
           </p>
           <div className="mt-4">

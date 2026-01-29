@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { ParticipationType } from '@/types';
+import { ParticipationType, EVENT_DATE } from '@/types';
 import { getEnrollmentService } from '@/lib/enrollment';
 
 interface EnrollmentFormProps {
@@ -46,7 +46,15 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Enroll for Workshop</h2>
+      <h2 className="text-2xl font-bold mb-2 text-black dark:text-white">Enroll for Workshop</h2>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        Event Date: {EVENT_DATE.toLocaleDateString('en-GB', { 
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}
+      </p>
       
       <div className="space-y-4">
         <div>

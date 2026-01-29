@@ -16,3 +16,4 @@ export interface EnrollmentState {
 export const MAX_CAPACITY = 20;
 export const MEN_QUOTA = 3;
 export const WOMEN_NON_BINARY_SPOTS = 17;
+export const EVENT_DATE = new Date('2026-03-17');
