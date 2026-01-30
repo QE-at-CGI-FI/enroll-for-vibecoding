@@ -112,8 +112,8 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cgi-purple focus:border-cgi-purple dark:bg-black dark:text-white"
           >
-            <option value="local">Local</option>
-            <option value="remote">Remote</option>
+            <option value="local">Local, at Karvaamokuja</option>
+            <option value="remote">Remote, in Teams</option>
           </select>
         </div>
 

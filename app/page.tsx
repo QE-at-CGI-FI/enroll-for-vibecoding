@@ -87,7 +87,7 @@ export default function Home() {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
-              })}
+              })} • 11-14, lunch break included
             </p>
             <div className="mt-4">
               <button
