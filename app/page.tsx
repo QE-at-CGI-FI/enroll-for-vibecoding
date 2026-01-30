@@ -12,6 +12,7 @@ export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showEventInfo, setShowEventInfo] = useState(false);
 
   useEffect(() => {
     const initialize = async () => {
@@ -63,9 +64,20 @@ export default function Home() {
                 priority
               />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-1">
-              Vibe Coding Workshop
-            </h1>
+            <div className="flex items-center justify-center lg:justify-start mb-1">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+                Vibe Coding Workshop
+              </h1>
+              <button
+                onClick={() => setShowEventInfo(true)}
+                className="ml-3 p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+                title="Event Information"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
             <p className="text-sm italic text-purple-600 dark:text-purple-400 mb-3">
               Adding women-hours to coding!
             </p>
@@ -128,6 +140,40 @@ export default function Home() {
 
         <ParticipantList refreshTrigger={refreshTrigger} />
       </div>
+
+      {/* Event Info Modal */}
+      {showEventInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  About Vibe Coding Workshop
+                </h2>
+                <button
+                  onClick={() => setShowEventInfo(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="text-gray-700 dark:text-gray-300 space-y-4">
+                <p>
+                  Turning all women of CGI in Finland into programmers - armed with vibe coding. 
+                  Come to a beginner-friendly event to build your own application. We start building 
+                  together so you can build what we started with, or take control to build to your own idea.
+                </p>
+                <p>
+                  For prep, create a GitHub account if you don't have one yet and join the 
+                  "One new developer per second" phenomena that GitHub reports on in their Octoverse report 2025.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
