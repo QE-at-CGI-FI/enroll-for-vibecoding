@@ -63,9 +63,12 @@ export default function Home() {
                 priority
               />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-1">
               Vibe Coding Workshop
             </h1>
+            <p className="text-sm italic text-purple-600 dark:text-purple-400 mb-3">
+              Adding women-hours to coding!
+            </p>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
               {EVENT_DATE.toLocaleDateString('en-GB', { 
                 weekday: 'long',
@@ -73,9 +76,6 @@ export default function Home() {
                 month: 'long',
                 day: 'numeric'
               })}
-            </p>
-            <p className="text-lg text-gray-600 dark:text-gray-300">
-              Enrollment System
             </p>
             <div className="mt-4">
               <button
