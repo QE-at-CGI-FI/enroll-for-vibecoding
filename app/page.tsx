@@ -51,53 +51,66 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-100 to-white dark:from-black dark:to-gray-900 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Image
-              src={`${process.env.NODE_ENV === 'production' ? '/enroll-for-vibecoding' : ''}/logo.png`}
-              alt="CGI Logo"
-              width={120}
-              height={80}
-              className="mr-4 logo-image"
-              priority
-            />
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-8">
+          <div className="text-center lg:text-left lg:flex-1">
+            <div className="flex items-center justify-center lg:justify-start mb-4">
+              <Image
+                src={`${process.env.NODE_ENV === 'production' ? '/enroll-for-vibecoding' : ''}/logo.png`}
+                alt="CGI Logo"
+                width={120}
+                height={80}
+                className="mr-4 logo-image"
+                priority
+              />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
+              Vibe Coding Workshop
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
+              {EVENT_DATE.toLocaleDateString('en-GB', { 
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Enrollment System
+            </p>
+            <div className="mt-4">
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                {isRefreshing ? (
+                  <>
+                    <div className="animate-spin -ml-1 mr-2 h-4 w-4 rounded-full border-2 border-white border-b-transparent"></div>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh Data
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-2">
-            Vibe Coding Workshop
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
-            {EVENT_DATE.toLocaleDateString('en-GB', { 
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </p>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            Enrollment System
-          </p>
-          <div className="mt-4">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              {isRefreshing ? (
-                <>
-                  <div className="animate-spin -ml-1 mr-2 h-4 w-4 rounded-full border-2 border-white border-b-transparent"></div>
-                  Refreshing...
-                </>
-              ) : (
-                <>
-                  <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Refresh Data
-                </>
-              )}
-            </button>
+          
+          <div className="mt-6 lg:mt-0 lg:ml-8 lg:max-w-sm">
+            <div className="text-sm text-gray-600 dark:text-gray-400 border-l-2 border-gray-300 dark:border-gray-600 pl-4">
+              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Privacy Notice</p>
+              <p>
+                Your name will be displayed on the participant list for event organization. 
+                All participant data will be permanently deleted after the workshop concludes.
+              </p>
+            </div>
           </div>
         </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
