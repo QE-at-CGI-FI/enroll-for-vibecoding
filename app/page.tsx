@@ -58,14 +58,14 @@ export default function Home() {
               <Image
                 src={`${process.env.NODE_ENV === 'production' ? '/enroll-for-vibecoding' : ''}/logo.png`}
                 alt="CGI Logo"
-                width={120}
-                height={80}
+                width={100}
+                height={66}
                 className="mr-4 logo-image"
                 priority
               />
             </div>
             <div className="flex items-center justify-center lg:justify-start mb-1">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
                 Vibe Coding Workshop
               </h1>
               <button
@@ -81,7 +81,7 @@ export default function Home() {
             <p className="text-sm italic text-purple-600 dark:text-purple-400 mb-3">
               Adding women-hours to coding!
             </p>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-2">
               {EVENT_DATE.toLocaleDateString('en-GB', { 
                 weekday: 'long',
                 year: 'numeric',
