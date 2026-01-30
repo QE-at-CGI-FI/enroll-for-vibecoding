@@ -103,9 +103,14 @@ export default function Home() {
           <div className="mt-6 lg:mt-0 lg:ml-8 lg:max-w-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 border-l-2 border-gray-300 dark:border-gray-600 pl-4">
               <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Privacy Notice</p>
-              <p>
+              <p className="mb-4">
                 Your name will be displayed on the participant list for event organization. 
                 All participant data will be permanently deleted after the workshop concludes.
+              </p>
+              
+              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Cancellation Policy</p>
+              <p>
+                If you need to cancel, contact Maaret Pyhäjärvi.
               </p>
             </div>
           </div>
