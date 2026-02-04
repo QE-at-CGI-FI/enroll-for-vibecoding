@@ -10,6 +10,47 @@ import {
 } from '@/types';
 import { supabase } from './supabase';
 
+// Retry configuration for network operations
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+};
+
+// Utility function for retry with exponential backoff
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  retries = RETRY_CONFIG.maxRetries
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const result = await operation();
+      if (attempt > 0) {
+        console.log(`✅ ${operationName} succeeded on attempt ${attempt + 1}`);
+      }
+      return result;
+    } catch (error) {
+      lastError = error;
+      console.warn(`⚠️ ${operationName} failed on attempt ${attempt + 1}:`, error);
+      
+      if (attempt < retries) {
+        const delay = Math.min(
+          RETRY_CONFIG.baseDelay * Math.pow(2, attempt),
+          RETRY_CONFIG.maxDelay
+        );
+        console.log(`⏳ Retrying ${operationName} in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  console.error(`❌ ${operationName} failed after ${retries + 1} attempts`);
+  throw lastError;
+}
+
 // Supabase table names
 const ENROLLED_TABLE = 'enrolled_participants';
 const WAITING_QUEUE_TABLE = 'waiting_queue_participants';
@@ -225,14 +266,14 @@ export class EnrollmentService {
     }
   }
 
-  // Save data to Supabase using upsert to handle duplicates properly
+  // Save data to Supabase using upsert to handle duplicates properly with retry logic
   private async saveToSupabase(): Promise<void> {
     if (!supabase) {
       console.log('Supabase not configured, skipping sync');
       return;
     }
     
-    try {
+    await retryOperation(async () => {
       console.log('🗄️ Starting Supabase upsert operation...');
 
       // Collect all participants from all sessions
@@ -281,22 +322,23 @@ export class EnrollmentService {
       }
 
       console.log('✅ Data upserted to Supabase successfully');
-    } catch (error) {
-      console.error('❌ Failed to upsert to Supabase:', error);
-      throw error;
-    }
+    }, 'Supabase upsert operation');
   }
 
   // Save data to both Supabase and localStorage
-  private async saveData(): Promise<void> {
+  private async saveData(): Promise<{ success: boolean; error?: any; savedLocally: boolean }> {
     // Always save to localStorage first (for immediate backup)
     this.saveToLocalStorage();
+    const savedLocally = true;
     
     try {
-      // Then save to Supabase
+      // Then save to Supabase with retry logic
       await this.saveToSupabase();
+      return { success: true, savedLocally };
     } catch (error) {
-      console.warn('Supabase save failed, data saved locally only:', error);
+      console.error('❌ Supabase save failed after retries:', error);
+      // Don't just warn - throw the error so the user knows about the failure
+      return { success: false, error, savedLocally };
     }
   }
 
@@ -403,13 +445,37 @@ export class EnrollmentService {
         };
         console.log('⏳ Adding to waiting queue:', newParticipant);
         this.state.sessions[sessionId].waitingQueue.push(newParticipant);
-        await this.saveData();
-        console.log('💾 Saved to waiting queue');
-        return { 
-          success: true, 
-          message: 'Added to waiting queue', 
-          addedToQueue: true 
-        };
+        
+        const saveResult = await this.saveData();
+        console.log('💾 Waiting queue save result:', saveResult);
+        
+        if (saveResult.success) {
+          return { 
+            success: true, 
+            message: 'Added to waiting queue', 
+            addedToQueue: true 
+          };
+        } else {
+          // Remove from local state if database save failed
+          this.state.sessions[sessionId].waitingQueue.pop();
+          
+          const isNetworkError = saveResult.error?.message?.includes('fetch') || 
+                                 saveResult.error?.message?.includes('network') ||
+                                 saveResult.error?.code === 'PGRST301' ||
+                                 saveResult.error?.message?.includes('timeout');
+          
+          if (isNetworkError) {
+            return { 
+              success: false, 
+              message: 'Network error - please check your connection and try again. You were not added to the waiting queue.' 
+            };
+          } else {
+            return { 
+              success: false, 
+              message: 'Database error - please try again or contact support if the problem persists.' 
+            };
+          }
+        }
       }
       console.log('❌ Cannot enroll:', canEnrollResult.reason);
       return { success: false, message: canEnrollResult.reason || 'Cannot enroll' };
@@ -427,13 +493,41 @@ export class EnrollmentService {
     this.state.sessions[sessionId].enrolled.push(newParticipant);
     console.log('📝 Added to local state. New count:', this.state.sessions[sessionId].enrolled.length);
     
-    await this.saveData();
-    console.log('💾 Saved data to storage');
+    const saveResult = await this.saveData();
+    console.log('💾 Save result:', saveResult);
     
     const finalStats = this.getEnrollmentStats(sessionId);
     console.log('📊 Final stats:', finalStats);
 
-    return { success: true, message: 'Successfully enrolled!' };
+    // Handle different save scenarios
+    if (saveResult.success) {
+      return { success: true, message: 'Successfully enrolled!' };
+    } else {
+      // Database save failed, but data is saved locally
+      console.error('🚨 Database save failed for enrollment:', saveResult.error);
+      
+      // Remove from local state since we couldn't save to database
+      // This prevents inconsistency between local and database state
+      this.state.sessions[sessionId].enrolled.pop();
+      
+      // Return appropriate error message
+      const isNetworkError = saveResult.error?.message?.includes('fetch') || 
+                             saveResult.error?.message?.includes('network') ||
+                             saveResult.error?.code === 'PGRST301' ||
+                             saveResult.error?.message?.includes('timeout');
+      
+      if (isNetworkError) {
+        return { 
+          success: false, 
+          message: 'Network error - please check your connection and try again. Your enrollment was not saved.' 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: 'Database error - please try again or contact support if the problem persists.' 
+        };
+      }
+    }
   }
   // Set state and save to storage (for a specific session)
   async setState(state: EnrollmentState, sessionId?: string): Promise<void> {

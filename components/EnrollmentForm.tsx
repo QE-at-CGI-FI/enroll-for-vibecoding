@@ -47,11 +47,35 @@ export default function EnrollmentForm({ onEnroll, selectedSessionId, onSessionC
         setNeedsDiversityQuota(false);
         onEnroll();
       } else {
-        setMessage({ type: 'error', text: result.message });
+        // Provide specific error messages based on error type
+        let errorMessage = result.message;
+        
+        // Add retry suggestion for network errors
+        if (result.message.includes('Network error') || result.message.includes('network')) {
+          errorMessage += ' Please check your internet connection and try again.';
+        }
+        
+        setMessage({ type: 'error', text: errorMessage });
       }
     } catch (error) {
       console.error('Enrollment error:', error);
-      setMessage({ type: 'error', text: 'Failed to enroll. Please try again.' });
+      
+      // Distinguish between different types of errors
+      let errorMessage = 'Failed to enroll. ';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+          errorMessage += 'Please check your internet connection and try again.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage += 'The request timed out. Please try again.';
+        } else {
+          errorMessage += 'Please try again or contact support if the problem persists.';
+        }
+      } else {
+        errorMessage += 'Please try again.';
+      }
+      
+      setMessage({ type: 'error', text: errorMessage });
     }
 
     setIsSubmitting(false);

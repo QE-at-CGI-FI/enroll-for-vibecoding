@@ -6,6 +6,7 @@ import EnrollmentForm from '@/components/EnrollmentForm';
 import EnrollmentStats from '@/components/EnrollmentStats';
 import ParticipantList from '@/components/ParticipantList';
 import { initializeEnrollmentService, getEnrollmentService } from '@/lib/enrollment';
+import { startConnectivityMonitoring } from '@/lib/connectivity';
 import { SESSIONS, DEFAULT_SESSION_ID } from '@/types';
 
 export default function Home() {
@@ -21,6 +22,11 @@ export default function Home() {
     const initialize = async () => {
       await initializeEnrollmentService();
       setIsInitialized(true);
+      
+      // Start connectivity monitoring for better error diagnosis
+      if (typeof window !== 'undefined') {
+        startConnectivityMonitoring();
+      }
     };
     initialize();
   }, []);
