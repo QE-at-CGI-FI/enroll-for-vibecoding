@@ -38,9 +38,6 @@ CREATE POLICY "Allow public insert on enrolled_participants" ON enrolled_partici
 CREATE POLICY "Allow public update on enrolled_participants" ON enrolled_participants
     FOR UPDATE USING (true);
 
-CREATE POLICY "Allow public delete on enrolled_participants" ON enrolled_participants
-    FOR DELETE USING (true);
-
 CREATE POLICY "Allow public read access on waiting_queue_participants" ON waiting_queue_participants
     FOR SELECT USING (true);
 

@@ -1,0 +1,144 @@
+const fs = require('fs');
+
+// Create a simple test HTML file to test enrollment in the browser
+const testHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enrollment Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form { margin: 20px 0; }
+        .result { margin: 20px 0; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        button { padding: 10px 15px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        label { display: block; margin: 10px 0 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Enrollment Test</h1>
+    
+    <div class="form">
+        <label>Name: <input type="text" id="name" value="Test User 2"></label>
+        <label>Needs Diversity Quota: 
+            <select id="needsDiversityQuota">
+                <option value="false">No (Women/Non-binary)</option>
+                <option value="true">Yes (Men)</option>
+            </select>
+        </label>
+        <label>Participation Type: 
+            <select id="participationType">
+                <option value="local">Local</option>
+                <option value="remote">Remote</option>
+            </select>
+        </label>
+        <label>Session ID: <input type="text" id="sessionId" value="session-1"></label>
+        <button onclick="testEnrollment()">Test Enrollment</button>
+        <button onclick="loadParticipants()">Load Participants</button>
+        <button onclick="clearData()">Clear Test Data</button>
+    </div>
+    
+    <div id="result" class="result"></div>
+    
+    <script>
+        const supabaseUrl = 'https://lqamcfvzsvkgiwjtllcc.supabase.co';
+        const supabaseAnonKey = 'sb_publishable_zdghzs78HI9HaDOGCaylBQ_xRzSHc1X';
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        
+        function log(message) {
+            const result = document.getElementById('result');
+            result.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+        }
+        
+        async function testEnrollment() {
+            log('Starting enrollment test...');
+            
+            const name = document.getElementById('name').value;
+            const needsDiversityQuota = document.getElementById('needsDiversityQuota').value === 'true';
+            const participationType = document.getElementById('participationType').value;
+            const sessionId = document.getElementById('sessionId').value;
+            
+            const participant = {
+                id: 'test-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                name: name,
+                needs_diversity_quota: needsDiversityQuota,
+                participation_type: participationType,
+                enrolled_at: new Date().toISOString(),
+                session_id: sessionId
+            };
+            
+            try {
+                log('Attempting to insert: ' + JSON.stringify(participant));
+                
+                const { data, error } = await supabase
+                    .from('enrolled_participants')
+                    .insert([participant])
+                    .select();
+                
+                if (error) {
+                    log('ERROR: ' + JSON.stringify(error));
+                } else {
+                    log('SUCCESS: ' + JSON.stringify(data));
+                }
+                
+            } catch (err) {
+                log('EXCEPTION: ' + err.message);
+            }
+        }
+        
+        async function loadParticipants() {
+            log('Loading participants...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('enrolled_participants')
+                    .select('*')
+                    .order('enrolled_at', { ascending: true });
+                
+                if (error) {
+                    log('ERROR: ' + JSON.stringify(error));
+                } else {
+                    log('Loaded ' + data.length + ' participants:');
+                    data.forEach(p => {
+                        log('- ' + p.name + ' (' + p.participation_type + ', ' + (p.needs_diversity_quota ? 'quota' : 'women') + ', session: ' + p.session_id + ')');
+                    });
+                }
+                
+            } catch (err) {
+                log('EXCEPTION: ' + err.message);
+            }
+        }
+        
+        async function clearData() {
+            if (!confirm('Clear all test data?')) return;
+            
+            log('Clearing test data...');
+            
+            try {
+                const { error } = await supabase
+                    .from('enrolled_participants')
+                    .delete()
+                    .ilike('id', 'test-%');
+                
+                if (error) {
+                    log('ERROR: ' + JSON.stringify(error));
+                } else {
+                    log('Test data cleared');
+                }
+                
+            } catch (err) {
+                log('EXCEPTION: ' + err.message);
+            }
+        }
+        
+        // Load participants on page load
+        loadParticipants();
+    </script>
+</body>
+</html>
+`;
+
+fs.writeFileSync('/Users/maaretp/Documents/cgi-code/enroll-for-vibecoding/test-enrollment.html', testHTML);
+console.log('Test HTML file created: test-enrollment.html');

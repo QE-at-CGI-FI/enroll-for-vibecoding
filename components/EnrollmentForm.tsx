@@ -1,19 +1,31 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { ParticipationType, EVENT_DATE } from '@/types';
+import { useState, FormEvent, useEffect } from 'react';
+import { ParticipationType, SESSIONS, DEFAULT_SESSION_ID } from '@/types';
 import { getEnrollmentService } from '@/lib/enrollment';
 
 interface EnrollmentFormProps {
   onEnroll: () => void;
+  selectedSessionId?: string;
+  onSessionChange?: (sessionId: string) => void;
 }
 
-export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
+export default function EnrollmentForm({ onEnroll, selectedSessionId, onSessionChange }: EnrollmentFormProps) {
   const [name, setName] = useState('');
   const [needsDiversityQuota, setNeedsDiversityQuota] = useState<boolean>(false);
   const [participationType, setParticipationType] = useState<ParticipationType>('local');
+  const [sessionId, setSessionId] = useState(selectedSessionId || DEFAULT_SESSION_ID);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const selectedSession = SESSIONS.find(s => s.id === sessionId);
+
+  // Update local sessionId when selectedSessionId prop changes
+  useEffect(() => {
+    if (selectedSessionId && selectedSessionId !== sessionId) {
+      setSessionId(selectedSessionId);
+    }
+  }, [selectedSessionId, sessionId]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -26,6 +38,7 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
         name,
         needsDiversityQuota,
         participationType,
+        sessionId,
       });
 
       if (result.success) {
@@ -44,19 +57,47 @@ export default function EnrollmentForm({ onEnroll }: EnrollmentFormProps) {
     setIsSubmitting(false);
   };
 
+  const handleSessionChange = (newSessionId: string) => {
+    setSessionId(newSessionId);
+    if (onSessionChange) {
+      onSessionChange(newSessionId);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-2 text-black dark:text-white">Enroll for Workshop</h2>
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-        Event Date: {EVENT_DATE.toLocaleDateString('en-GB', { 
+        Event Date: {selectedSession?.date.toLocaleDateString('en-GB', { 
           weekday: 'long',
           year: 'numeric',
           month: 'long',
           day: 'numeric'
-        })}
+        })} • {selectedSession?.timeSlot}
       </p>
       
       <div className="space-y-4">
+        <div>
+          <label htmlFor="session" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Select Workshop Session *
+          </label>
+          <select
+            id="session"
+            value={sessionId}
+            onChange={(e) => handleSessionChange(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cgi-purple focus:border-cgi-purple dark:bg-black dark:text-white"
+          >
+            {SESSIONS.map((session) => (
+              <option key={session.id} value={session.id}>
+                {session.date.toLocaleDateString('en-GB', { 
+                  month: 'long',
+                  day: 'numeric'
+                })} • {session.timeSlot}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Name *

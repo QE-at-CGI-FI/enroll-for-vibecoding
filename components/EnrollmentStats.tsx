@@ -2,17 +2,21 @@
 
 import { getEnrollmentService } from '@/lib/enrollment';
 import { useEffect, useState } from 'react';
+import { DEFAULT_SESSION_ID } from '@/types';
 
 interface EnrollmentStatsProps {
   refreshTrigger: number;
+  sessionId?: string;
 }
 
-export default function EnrollmentStats({ refreshTrigger }: EnrollmentStatsProps) {
-  const [stats, setStats] = useState(getEnrollmentService().getEnrollmentStats());
+export default function EnrollmentStats({ refreshTrigger, sessionId = DEFAULT_SESSION_ID }: EnrollmentStatsProps) {
+  const [stats, setStats] = useState(getEnrollmentService().getEnrollmentStats(sessionId));
 
   useEffect(() => {
-    setStats(getEnrollmentService().getEnrollmentStats());
-  }, [refreshTrigger]);
+    const service = getEnrollmentService();
+    service.setCurrentSession(sessionId);
+    setStats(service.getEnrollmentStats(sessionId));
+  }, [refreshTrigger, sessionId]);
 
   return (
     <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 p-6 rounded-lg shadow-lg">

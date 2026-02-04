@@ -3,17 +3,21 @@
 import { Participant } from '@/types';
 import { getEnrollmentService } from '@/lib/enrollment';
 import { useEffect, useState } from 'react';
+import { DEFAULT_SESSION_ID } from '@/types';
 
 interface ParticipantListProps {
   refreshTrigger: number;
+  sessionId?: string;
 }
 
-export default function ParticipantList({ refreshTrigger }: ParticipantListProps) {
-  const [state, setState] = useState(getEnrollmentService().getState());
+export default function ParticipantList({ refreshTrigger, sessionId = DEFAULT_SESSION_ID }: ParticipantListProps) {
+  const [state, setState] = useState(getEnrollmentService().getState(sessionId));
 
   useEffect(() => {
-    setState(getEnrollmentService().getState());
-  }, [refreshTrigger]);
+    const service = getEnrollmentService();
+    service.setCurrentSession(sessionId);
+    setState(service.getState(sessionId));
+  }, [refreshTrigger, sessionId]);
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString();

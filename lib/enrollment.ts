@@ -1,4 +1,13 @@
-import { Participant, EnrollmentState, MAX_CAPACITY, MEN_QUOTA, WOMEN_NON_BINARY_SPOTS } from '@/types';
+import { 
+  Participant, 
+  EnrollmentState, 
+  MultiSessionEnrollmentState,
+  MAX_CAPACITY, 
+  MEN_QUOTA, 
+  WOMEN_NON_BINARY_SPOTS,
+  SESSIONS,
+  DEFAULT_SESSION_ID 
+} from '@/types';
 import { supabase } from './supabase';
 
 // Supabase table names
@@ -9,26 +18,55 @@ const WAITING_QUEUE_TABLE = 'waiting_queue_participants';
 const STORAGE_KEY = 'vibe-coding-enrollment';
 
 interface StorageData {
-  state: EnrollmentState;
+  state: MultiSessionEnrollmentState;
   lastUpdated: string;
 }
 
 export class EnrollmentService {
-  private state: EnrollmentState;
+  private state: MultiSessionEnrollmentState;
   private isLoading = false;
+  private currentSessionId = DEFAULT_SESSION_ID;
 
-  constructor(initialState?: EnrollmentState) {
-    this.state = initialState || {
-      enrolled: [],
-      waitingQueue: [],
-    };
+  constructor(initialState?: MultiSessionEnrollmentState) {
+    // Initialize with empty states for all sessions
+    const sessionsState: { [sessionId: string]: EnrollmentState } = {};
+    SESSIONS.forEach(session => {
+      sessionsState[session.id] = {
+        enrolled: [],
+        waitingQueue: [],
+      };
+    });
+
+    this.state = initialState || { sessions: sessionsState };
     this.loadFromSupabase();
+  }
+
+  // Set current session for operations
+  setCurrentSession(sessionId: string): void {
+    if (this.state.sessions[sessionId]) {
+      this.currentSessionId = sessionId;
+    }
+  }
+
+  // Get current session state
+  private getCurrentSessionState(): EnrollmentState {
+    return this.state.sessions[this.currentSessionId] || { enrolled: [], waitingQueue: [] };
+  }
+
+  // Get session state by ID
+  getSessionState(sessionId: string): EnrollmentState {
+    return this.state.sessions[sessionId] || { enrolled: [], waitingQueue: [] };
   }
 
   // Load data from Supabase with localStorage fallback
   private async loadFromSupabase(): Promise<void> {
-    if (this.isLoading) return;
+    if (this.isLoading) {
+      console.log('⏳ Already loading, skipping...');
+      return;
+    }
     this.isLoading = true;
+    
+    console.log('🔄 Starting loadFromSupabase...');
 
     try {
       // Check if Supabase is available
@@ -40,6 +78,7 @@ export class EnrollmentService {
       }
 
       // First try to load from Supabase
+      console.log('📡 Fetching data from Supabase...');
       const [enrolledResponse, waitingResponse] = await Promise.all([
         supabase.from(ENROLLED_TABLE).select('*').order('enrolled_at', { ascending: true }),
         supabase.from(WAITING_QUEUE_TABLE).select('*').order('enrolled_at', { ascending: true })
@@ -50,18 +89,44 @@ export class EnrollmentService {
                     enrolledResponse.error || waitingResponse.error);
         this.loadFromLocalStorage();
       } else {
-        // Successfully loaded from Supabase
-        this.state = {
-          enrolled: (enrolledResponse.data || []).map(this.mapSupabaseToParticipant),
-          waitingQueue: (waitingResponse.data || []).map(this.mapSupabaseToParticipant)
-        };
+        console.log(`📊 Loaded ${(enrolledResponse.data || []).length} enrolled and ${(waitingResponse.data || []).length} waiting from Supabase`);
+        
+        // Successfully loaded from Supabase - group by session
+        const enrolledParticipants = (enrolledResponse.data || []).map(this.mapSupabaseToParticipant);
+        const waitingParticipants = (waitingResponse.data || []).map(this.mapSupabaseToParticipant);
+
+        console.log('👥 Mapped participants:', {
+          enrolled: enrolledParticipants.length,
+          waiting: waitingParticipants.length,
+          enrolledBySession: enrolledParticipants.reduce((acc, p) => {
+            acc[p.sessionId] = (acc[p.sessionId] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
+        });
+
+        // Reset session states
+        const sessionsState: { [sessionId: string]: EnrollmentState } = {};
+        SESSIONS.forEach(session => {
+          sessionsState[session.id] = {
+            enrolled: enrolledParticipants.filter(p => p.sessionId === session.id),
+            waitingQueue: waitingParticipants.filter(p => p.sessionId === session.id),
+          };
+        });
+        
+        this.state = { sessions: sessionsState };
+        
+        console.log('🏠 Updated state with session breakdown:', 
+          Object.entries(this.state.sessions).map(([id, state]) => 
+            `${id}: ${state.enrolled.length} enrolled, ${state.waitingQueue.length} waiting`
+          )
+        );
         
         // Update localStorage with latest data
         this.saveToLocalStorage();
-        console.log('Data loaded from Supabase');
+        console.log('✅ Data loaded from Supabase successfully');
       }
     } catch (error) {
-      console.warn('Failed to load from Supabase, using localStorage:', error);
+      console.warn('❌ Failed to load from Supabase, using localStorage:', error);
       this.loadFromLocalStorage();
     } finally {
       this.isLoading = false;
@@ -74,10 +139,48 @@ export class EnrollmentService {
       const localData = localStorage.getItem(STORAGE_KEY);
       if (localData) {
         const parsed: StorageData = JSON.parse(localData);
-        this.state = {
-          enrolled: parsed.state.enrolled.map(p => ({...p, enrolledAt: new Date(p.enrolledAt)})),
-          waitingQueue: parsed.state.waitingQueue.map(p => ({...p, enrolledAt: new Date(p.enrolledAt)}))
-        };
+        
+        // Handle both old single-session format and new multi-session format
+        if ('sessions' in parsed.state) {
+          // New multi-session format
+          this.state = {
+            sessions: Object.fromEntries(
+              Object.entries(parsed.state.sessions).map(([sessionId, sessionState]) => [
+                sessionId,
+                {
+                  enrolled: sessionState.enrolled.map(p => ({...p, enrolledAt: new Date(p.enrolledAt)})),
+                  waitingQueue: sessionState.waitingQueue.map(p => ({...p, enrolledAt: new Date(p.enrolledAt)}))
+                }
+              ])
+            )
+          };
+        } else {
+          // Legacy single-session format - migrate to first session
+          const legacyState = parsed.state as any;
+          const sessionsState: { [sessionId: string]: EnrollmentState } = {};
+          SESSIONS.forEach((session, index) => {
+            if (index === 0) {
+              // First session gets the legacy data
+              sessionsState[session.id] = {
+                enrolled: (legacyState.enrolled || []).map((p: any) => ({
+                  ...p, 
+                  enrolledAt: new Date(p.enrolledAt),
+                  sessionId: session.id
+                })),
+                waitingQueue: (legacyState.waitingQueue || []).map((p: any) => ({
+                  ...p, 
+                  enrolledAt: new Date(p.enrolledAt),
+                  sessionId: session.id
+                }))
+              };
+            } else {
+              // Other sessions start empty
+              sessionsState[session.id] = { enrolled: [], waitingQueue: [] };
+            }
+          });
+          this.state = { sessions: sessionsState };
+        }
+        
         console.log('Data loaded from localStorage');
       }
     } catch (error) {
@@ -92,7 +195,8 @@ export class EnrollmentService {
       name: row.name,
       needsDiversityQuota: row.needs_diversity_quota,
       participationType: row.participation_type,
-      enrolledAt: new Date(row.enrolled_at)
+      enrolledAt: new Date(row.enrolled_at),
+      sessionId: row.session_id || DEFAULT_SESSION_ID // Handle legacy data without session_id
     };
   }
 
@@ -103,9 +207,11 @@ export class EnrollmentService {
       name: participant.name,
       needs_diversity_quota: participant.needsDiversityQuota,
       participation_type: participant.participationType,
-      enrolled_at: participant.enrolledAt.toISOString()
+      enrolled_at: participant.enrolledAt.toISOString(),
+      session_id: participant.sessionId
     };
   }
+
   // Save to localStorage as backup
   private saveToLocalStorage(): void {
     try {
@@ -119,7 +225,7 @@ export class EnrollmentService {
     }
   }
 
-  // Save data to Supabase
+  // Save data to Supabase using upsert to handle duplicates properly
   private async saveToSupabase(): Promise<void> {
     if (!supabase) {
       console.log('Supabase not configured, skipping sync');
@@ -127,39 +233,56 @@ export class EnrollmentService {
     }
     
     try {
-      // Clear existing data and insert new data
-      await Promise.all([
-        supabase.from(ENROLLED_TABLE).delete().neq('id', 'dummy'),
-        supabase.from(WAITING_QUEUE_TABLE).delete().neq('id', 'dummy')
-      ]);
+      console.log('🗄️ Starting Supabase upsert operation...');
 
-      // Insert enrolled participants
-      if (this.state.enrolled.length > 0) {
-        const enrolledData = this.state.enrolled.map(this.mapParticipantToSupabase);
+      // Collect all participants from all sessions
+      const allEnrolled: Participant[] = [];
+      const allWaiting: Participant[] = [];
+
+      Object.values(this.state.sessions).forEach(sessionState => {
+        allEnrolled.push(...sessionState.enrolled);
+        allWaiting.push(...sessionState.waitingQueue);
+      });
+      
+      console.log(`📊 Preparing to upsert ${allEnrolled.length} enrolled and ${allWaiting.length} waiting participants`);
+
+      // Upsert enrolled participants (insert new, update existing)
+      if (allEnrolled.length > 0) {
+        const enrolledData = allEnrolled.map(this.mapParticipantToSupabase);
+        console.log('💾 Upserting enrolled participants:', enrolledData);
         const { error: enrolledError } = await supabase
           .from(ENROLLED_TABLE)
-          .insert(enrolledData);
+          .upsert(enrolledData, { onConflict: 'id' })
+          .select();
 
         if (enrolledError) {
+          console.error('❌ Error upserting enrolled participants:', enrolledError);
           throw enrolledError;
+        } else {
+          console.log('✅ Enrolled participants upserted successfully');
         }
       }
 
-      // Insert waiting queue participants
-      if (this.state.waitingQueue.length > 0) {
-        const waitingData = this.state.waitingQueue.map(this.mapParticipantToSupabase);
+      // Upsert waiting queue participants (insert new, update existing)
+      if (allWaiting.length > 0) {
+        const waitingData = allWaiting.map(this.mapParticipantToSupabase);
+        console.log('💾 Upserting waiting participants:', waitingData);
         const { error: waitingError } = await supabase
           .from(WAITING_QUEUE_TABLE)
-          .insert(waitingData);
+          .upsert(waitingData, { onConflict: 'id' })
+          .select();
 
         if (waitingError) {
+          console.error('❌ Error upserting waiting participants:', waitingError);
           throw waitingError;
+        } else {
+          console.log('✅ Waiting participants upserted successfully');
         }
       }
 
-      console.log('Data saved to Supabase');
+      console.log('✅ Data upserted to Supabase successfully');
     } catch (error) {
-      console.warn('Failed to save to Supabase:', error);
+      console.error('❌ Failed to upsert to Supabase:', error);
       throw error;
     }
   }
@@ -177,15 +300,20 @@ export class EnrollmentService {
     }
   }
 
-  getState(): EnrollmentState {
+  getState(sessionId?: string): EnrollmentState {
+    const targetSessionId = sessionId || this.currentSessionId;
+    const sessionState = this.getSessionState(targetSessionId);
     return {
-      enrolled: [...this.state.enrolled],
-      waitingQueue: [...this.state.waitingQueue],
+      enrolled: [...sessionState.enrolled],
+      waitingQueue: [...sessionState.waitingQueue],
     };
   }
 
-  getEnrollmentStats() {
-    const enrolled = this.state.enrolled;
+  getEnrollmentStats(sessionId?: string) {
+    const targetSessionId = sessionId || this.currentSessionId;
+    const sessionState = this.getSessionState(targetSessionId);
+    const enrolled = sessionState.enrolled;
+    
     const menCount = enrolled.filter(p => p.needsDiversityQuota).length;
     const womenCount = enrolled.filter(p => !p.needsDiversityQuota).length;
     const localCount = enrolled.filter(p => p.participationType === 'local').length;
@@ -201,15 +329,16 @@ export class EnrollmentService {
       local: localCount,
       remote: remoteCount,
       availableSpots: MAX_CAPACITY - enrolled.length,
-      waitingQueueLength: this.state.waitingQueue.length,
+      waitingQueueLength: sessionState.waitingQueue.length,
       menQuotaRemaining: MEN_QUOTA - menQuotaUsed,
       womenNonBinarySpotsRemaining: WOMEN_NON_BINARY_SPOTS - womenNonBinaryCount,
       menQuotaUsed: menQuotaUsed,
     };
   }
 
-  canEnroll(needsDiversityQuota: boolean): { canEnroll: boolean; reason?: string } {
-    const stats = this.getEnrollmentStats();
+  canEnroll(needsDiversityQuota: boolean, sessionId?: string): { canEnroll: boolean; reason?: string } {
+    const targetSessionId = sessionId || this.currentSessionId;
+    const stats = this.getEnrollmentStats(targetSessionId);
 
     // Check if already at capacity
     if (stats.total >= MAX_CAPACITY) {
@@ -252,57 +381,93 @@ export class EnrollmentService {
   }
 
   async enroll(participant: Omit<Participant, 'id' | 'enrolledAt'>): Promise<{ success: boolean; message: string; addedToQueue?: boolean }> {
-    const canEnrollResult = this.canEnroll(participant.needsDiversityQuota);
+    console.log('🚀 Starting enrollment for:', participant);
+    const sessionId = participant.sessionId || DEFAULT_SESSION_ID;
+    console.log('📋 Using session ID:', sessionId);
+    
+    const initialStats = this.getEnrollmentStats(sessionId);
+    console.log('📊 Initial stats:', initialStats);
+    
+    const canEnrollResult = this.canEnroll(participant.needsDiversityQuota, sessionId);
+    console.log('✅ Can enroll result:', canEnrollResult);
 
     if (!canEnrollResult.canEnroll) {
       // If it's a woman/non-binary and spots are full, add to waiting queue
       if (!participant.needsDiversityQuota && 
-          this.getEnrollmentStats().womenNonBinarySpotsRemaining <= 0) {
+          this.getEnrollmentStats(sessionId).womenNonBinarySpotsRemaining <= 0) {
         const newParticipant: Participant = {
           ...participant,
+          sessionId,
           id: `waiting-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           enrolledAt: new Date(),
         };
-        this.state.waitingQueue.push(newParticipant);
+        console.log('⏳ Adding to waiting queue:', newParticipant);
+        this.state.sessions[sessionId].waitingQueue.push(newParticipant);
         await this.saveData();
+        console.log('💾 Saved to waiting queue');
         return { 
           success: true, 
           message: 'Added to waiting queue', 
           addedToQueue: true 
         };
       }
+      console.log('❌ Cannot enroll:', canEnrollResult.reason);
       return { success: false, message: canEnrollResult.reason || 'Cannot enroll' };
     }
 
     // Enroll the participant
     const newParticipant: Participant = {
       ...participant,
+      sessionId,
       id: `enrolled-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       enrolledAt: new Date(),
     };
-    this.state.enrolled.push(newParticipant);
+    console.log('🎉 Enrolling participant:', newParticipant);
+    
+    this.state.sessions[sessionId].enrolled.push(newParticipant);
+    console.log('📝 Added to local state. New count:', this.state.sessions[sessionId].enrolled.length);
+    
     await this.saveData();
+    console.log('💾 Saved data to storage');
+    
+    const finalStats = this.getEnrollmentStats(sessionId);
+    console.log('📊 Final stats:', finalStats);
 
     return { success: true, message: 'Successfully enrolled!' };
   }
-
-  // Set state and save to storage
-  async setState(state: EnrollmentState): Promise<void> {
-    this.state = state;
+  // Set state and save to storage (for a specific session)
+  async setState(state: EnrollmentState, sessionId?: string): Promise<void> {
+    const targetSessionId = sessionId || this.currentSessionId;
+    this.state.sessions[targetSessionId] = state;
     await this.saveData();
   }
 
   // Manually refresh data from Supabase
   async refresh(): Promise<void> {
+    console.log('🔄 Manual refresh requested');
     await this.loadFromSupabase();
+    console.log('✅ Manual refresh completed');
   }
 
   // Clear all enrollment data (for admin/testing purposes)
-  async clearData(): Promise<void> {
-    this.state = {
-      enrolled: [],
-      waitingQueue: []
-    };
+  async clearData(sessionId?: string): Promise<void> {
+    if (sessionId) {
+      // Clear specific session
+      this.state.sessions[sessionId] = {
+        enrolled: [],
+        waitingQueue: []
+      };
+    } else {
+      // Clear all sessions
+      const sessionsState: { [sessionId: string]: EnrollmentState } = {};
+      SESSIONS.forEach(session => {
+        sessionsState[session.id] = {
+          enrolled: [],
+          waitingQueue: [],
+        };
+      });
+      this.state = { sessions: sessionsState };
+    }
     await this.saveData();
   }
 }

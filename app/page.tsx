@@ -6,13 +6,16 @@ import EnrollmentForm from '@/components/EnrollmentForm';
 import EnrollmentStats from '@/components/EnrollmentStats';
 import ParticipantList from '@/components/ParticipantList';
 import { initializeEnrollmentService, getEnrollmentService } from '@/lib/enrollment';
-import { EVENT_DATE } from '@/types';
+import { SESSIONS, DEFAULT_SESSION_ID } from '@/types';
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showEventInfo, setShowEventInfo] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState(DEFAULT_SESSION_ID);
+
+  const selectedSession = SESSIONS.find(s => s.id === selectedSessionId);
 
   useEffect(() => {
     const initialize = async () => {
@@ -26,10 +29,16 @@ export default function Home() {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleSessionChange = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       const service = getEnrollmentService();
+      service.setCurrentSession(selectedSessionId);
       await service.refresh();
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
@@ -81,14 +90,29 @@ export default function Home() {
             <p className="text-sm italic text-purple-600 dark:text-purple-400 mb-3">
               Adding women-hours to coding!
             </p>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-2">
-              {EVENT_DATE.toLocaleDateString('en-GB', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })} • 11-14, lunch break included
-            </p>
+            
+            <div className="mb-4">
+              <label htmlFor="session-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Select Workshop Session:
+              </label>
+              <select
+                id="session-select"
+                value={selectedSessionId}
+                onChange={(e) => handleSessionChange(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cgi-purple focus:border-cgi-purple dark:bg-black dark:text-white"
+              >
+                {SESSIONS.map((session) => (
+                  <option key={session.id} value={session.id}>
+                    {session.date.toLocaleDateString('en-GB', { 
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })} • {session.timeSlot}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="mt-4">
               <button
                 onClick={handleRefresh}
@@ -114,6 +138,11 @@ export default function Home() {
           
           <div className="mt-6 lg:mt-0 lg:ml-8 lg:max-w-sm">
             <div className="text-sm text-gray-600 dark:text-gray-400 border-l-2 border-gray-300 dark:border-gray-600 pl-4">
+              <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Schedule</p>
+              <p className="mb-4">
+                Workshop runs from 11:00 to 14:00 with lunch break included.
+              </p>
+              
               <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Privacy Notice</p>
               <p className="mb-4">
                 Your name will be displayed on the participant list for event organization. 
@@ -131,14 +160,18 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
-            <EnrollmentStats refreshTrigger={refreshTrigger} />
+            <EnrollmentStats refreshTrigger={refreshTrigger} sessionId={selectedSessionId} />
           </div>
           <div>
-            <EnrollmentForm onEnroll={handleEnroll} />
+            <EnrollmentForm 
+              onEnroll={handleEnroll} 
+              selectedSessionId={selectedSessionId}
+              onSessionChange={handleSessionChange}
+            />
           </div>
         </div>
 
-        <ParticipantList refreshTrigger={refreshTrigger} />
+        <ParticipantList refreshTrigger={refreshTrigger} sessionId={selectedSessionId} />
       </div>
 
       {/* Event Info Modal */}
