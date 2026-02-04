@@ -112,7 +112,7 @@ export default function EnrollmentForm({ onEnroll, selectedSessionId, onSessionC
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-cgi-purple focus:border-cgi-purple dark:bg-black dark:text-white"
           >
-            {SESSIONS.filter(session => session.id !== 'session-2').map((session) => (
+            {SESSIONS.map((session) => (
               <option key={session.id} value={session.id}>
                 {session.date.toLocaleDateString('en-GB', { 
                   month: 'long',
