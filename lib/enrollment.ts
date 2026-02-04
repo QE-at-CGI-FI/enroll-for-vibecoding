@@ -273,6 +273,9 @@ export class EnrollmentService {
       return;
     }
     
+    // Capture supabase reference for use inside retry callback
+    const supabaseClient = supabase;
+    
     await retryOperation(async () => {
       console.log('🗄️ Starting Supabase upsert operation...');
 
@@ -291,7 +294,7 @@ export class EnrollmentService {
       if (allEnrolled.length > 0) {
         const enrolledData = allEnrolled.map(this.mapParticipantToSupabase);
         console.log('💾 Upserting enrolled participants:', enrolledData);
-        const { error: enrolledError } = await supabase
+        const { error: enrolledError } = await supabaseClient
           .from(ENROLLED_TABLE)
           .upsert(enrolledData, { onConflict: 'id' })
           .select();
@@ -308,7 +311,7 @@ export class EnrollmentService {
       if (allWaiting.length > 0) {
         const waitingData = allWaiting.map(this.mapParticipantToSupabase);
         console.log('💾 Upserting waiting participants:', waitingData);
-        const { error: waitingError } = await supabase
+        const { error: waitingError } = await supabaseClient
           .from(WAITING_QUEUE_TABLE)
           .upsert(waitingData, { onConflict: 'id' })
           .select();
