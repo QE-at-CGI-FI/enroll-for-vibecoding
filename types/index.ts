@@ -35,10 +35,19 @@ export const SESSIONS: Session[] = [
     date: new Date('2026-03-17'),
     timeSlot: '11-14',
     description: 'First Vibe Coding Workshop'
+  }, 
+  {
+    id: 'session-2',
+    date: new Date('2026-04-07'),
+    timeSlot: '11-14',
+    description: 'Second Vibe Coding Workshop'
   }
 ];
 
 export const DEFAULT_SESSION_ID = 'session-1';
+
+// Second session enrollment restriction
+export const SECOND_SESSION_CUTOFF = new Date('2026-02-10T08:00:00+02:00'); // Feb 10, 2026, 8 AM Finnish time
 
 // Backward compatibility
 export const EVENT_DATE = SESSIONS[0].date;

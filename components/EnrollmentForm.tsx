@@ -4,6 +4,19 @@ import { useState, FormEvent, useEffect } from 'react';
 import { ParticipationType, SESSIONS, DEFAULT_SESSION_ID } from '@/types';
 import { getEnrollmentService } from '@/lib/enrollment';
 
+// Second session restriction configuration (matches enrollment.ts)
+const SECOND_SESSION_RESTRICTION = {
+  cutoffDate: new Date('2026-02-10T08:00:00+02:00'), // Feb 10, 2026, 8 AM Finnish time (UTC+2)
+  restrictedSessionId: 'session-2',
+  maxWaitingQueuePosition: 17 // Only first 17 in waiting queue can enroll to second session
+};
+
+// Helper function to check if we're still in the restriction period
+function isSecondSessionRestricted(): boolean {
+  const now = new Date();
+  return now < SECOND_SESSION_RESTRICTION.cutoffDate;
+}
+
 interface EnrollmentFormProps {
   onEnroll: () => void;
   selectedSessionId?: string;
@@ -17,6 +30,7 @@ export default function EnrollmentForm({ onEnroll, selectedSessionId, onSessionC
   const [sessionId, setSessionId] = useState(selectedSessionId || DEFAULT_SESSION_ID);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showRestrictionWarning, setShowRestrictionWarning] = useState(false);
 
   const selectedSession = SESSIONS.find(s => s.id === sessionId);
 
@@ -26,6 +40,12 @@ export default function EnrollmentForm({ onEnroll, selectedSessionId, onSessionC
       setSessionId(selectedSessionId);
     }
   }, [selectedSessionId, sessionId]);
+
+  // Update restriction warning when session changes
+  useEffect(() => {
+    const shouldShowWarning = sessionId === SECOND_SESSION_RESTRICTION.restrictedSessionId && isSecondSessionRestricted();
+    setShowRestrictionWarning(shouldShowWarning);
+  }, [sessionId]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -122,6 +142,24 @@ export default function EnrollmentForm({ onEnroll, selectedSessionId, onSessionC
             ))}
           </select>
         </div>
+
+        {showRestrictionWarning && (
+          <div className="p-3 rounded-md bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700">
+            <p className="text-sm">
+              <strong>⚠️ Notice:</strong> Until {SECOND_SESSION_RESTRICTION.cutoffDate.toLocaleDateString('en-GB', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZoneName: 'short'
+              })}, only the first {SECOND_SESSION_RESTRICTION.maxWaitingQueuePosition} participants from the first session waiting queue can enroll directly to the second session. 
+              Others will be added to the second session waiting queue, or will receive a notice if they are already in the queue system.
+            </p>
+          </div>
+        )}
+        
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Name *

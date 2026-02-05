@@ -55,6 +55,49 @@ async function retryOperation<T>(
 const ENROLLED_TABLE = 'enrolled_participants';
 const WAITING_QUEUE_TABLE = 'waiting_queue_participants';
 
+// Second session restriction configuration
+const SECOND_SESSION_RESTRICTION = {
+  cutoffDate: new Date('2026-02-10T08:00:00+02:00'), // Feb 10, 2026, 8 AM Finnish time (UTC+2)
+  restrictedSessionId: 'session-2',
+  maxWaitingQueuePosition: 17 // Only first 17 in waiting queue can enroll to second session
+};
+
+// Helper function to check if we're still in the restriction period
+function isSecondSessionRestricted(): boolean {
+  const now = new Date();
+  return now < SECOND_SESSION_RESTRICTION.cutoffDate;
+}
+
+// Helper function to get participant's position in first session waiting queue (1-based, 0 if not found)
+function getParticipantPositionInFirstWaitingQueue(participantName: string, state: MultiSessionEnrollmentState): number {
+  const firstSessionState = state.sessions['session-1'];
+  if (!firstSessionState) return 0;
+  
+  const normalizedName = participantName.toLowerCase().trim();
+  
+  // Find position in first session waiting queue (1-based index)
+  const position = firstSessionState.waitingQueue.findIndex(p => 
+    p.name.toLowerCase().trim() === normalizedName
+  );
+  
+  return position >= 0 ? position + 1 : 0; // Convert to 1-based, return 0 if not found
+}
+
+// Helper function to check if participant can enroll to second session during restriction
+function canParticipantEnrollToSecondSession(participantName: string, state: MultiSessionEnrollmentState): { canEnroll: boolean; position: number; reason?: string } {
+  const position = getParticipantPositionInFirstWaitingQueue(participantName, state);
+  
+  if (position === 0) {
+    return { canEnroll: false, position: 0, reason: 'not in first session waiting queue' };
+  }
+  
+  if (position > SECOND_SESSION_RESTRICTION.maxWaitingQueuePosition) {
+    return { canEnroll: false, position, reason: 'beyond eligible position in waiting queue' };
+  }
+  
+  return { canEnroll: true, position };
+}
+
 // Fallback to localStorage for offline support
 const STORAGE_KEY = 'vibe-coding-enrollment';
 
@@ -429,6 +472,75 @@ export class EnrollmentService {
     console.log('🚀 Starting enrollment for:', participant);
     const sessionId = participant.sessionId || DEFAULT_SESSION_ID;
     console.log('📋 Using session ID:', sessionId);
+    
+    // Check second session restriction
+    if (sessionId === SECOND_SESSION_RESTRICTION.restrictedSessionId && isSecondSessionRestricted()) {
+      const eligibilityCheck = canParticipantEnrollToSecondSession(participant.name, this.state);
+      console.log('🔒 Second session restricted. Eligibility check:', eligibilityCheck);
+      
+      if (!eligibilityCheck.canEnroll) {
+        // Handle different restriction scenarios
+        if (eligibilityCheck.position === 0) {
+          // Not in first session waiting queue - add to second session waiting queue
+          const newParticipant: Participant = {
+            ...participant,
+            sessionId,
+            id: `waiting-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            enrolledAt: new Date(),
+          };
+          
+          console.log('⏳ Adding to second session waiting queue (not in first queue):', newParticipant);
+          this.state.sessions[sessionId].waitingQueue.push(newParticipant);
+          
+          const saveResult = await this.saveData();
+          console.log('💾 Waiting queue save result:', saveResult);
+          
+          if (saveResult.success) {
+            const cutoffDateFormatted = SECOND_SESSION_RESTRICTION.cutoffDate.toLocaleDateString('en-GB', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZoneName: 'short'
+            });
+            
+            return { 
+              success: true, 
+              message: `Until ${cutoffDateFormatted}, only the first ${SECOND_SESSION_RESTRICTION.maxWaitingQueuePosition} participants from the first session waiting queue can enroll directly to the second session. You have been added to the second session waiting queue.`, 
+              addedToQueue: true 
+            };
+          } else {
+            // Remove from local state if database save failed
+            this.state.sessions[sessionId].waitingQueue.pop();
+            
+            const isNetworkError = saveResult.error?.message?.includes('fetch') || 
+                                   saveResult.error?.message?.includes('network') ||
+                                   saveResult.error?.code === 'PGRST301' ||
+                                   saveResult.error?.message?.includes('timeout');
+            
+            if (isNetworkError) {
+              return { 
+                success: false, 
+                message: 'Network error - please check your connection and try again. You were not added to the waiting queue.' 
+              };
+            } else {
+              return { 
+                success: false, 
+                message: 'Database error - please try again or contact support if the problem persists.' 
+              };
+            }
+          }
+        } else {
+          // Participant is in waiting queue but beyond position 17 - don't add to second session queue
+          return {
+            success: true,
+            message: `You are at position ${eligibilityCheck.position} in the first session waiting queue. Only the first ${SECOND_SESSION_RESTRICTION.maxWaitingQueuePosition} participants can enroll to the second session during the restriction period. You are already in the queue system.`
+          };
+        }
+      }
+    }
     
     const initialStats = this.getEnrollmentStats(sessionId);
     console.log('📊 Initial stats:', initialStats);

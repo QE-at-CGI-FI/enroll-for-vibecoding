@@ -7,7 +7,7 @@ import EnrollmentStats from '@/components/EnrollmentStats';
 import ParticipantList from '@/components/ParticipantList';
 import { initializeEnrollmentService, getEnrollmentService } from '@/lib/enrollment';
 import { startConnectivityMonitoring } from '@/lib/connectivity';
-import { SESSIONS, DEFAULT_SESSION_ID } from '@/types';
+import { SESSIONS, DEFAULT_SESSION_ID, SECOND_SESSION_CUTOFF } from '@/types';
 
 export default function Home() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -119,6 +119,7 @@ export default function Home() {
                 ))}
               </select>
             </div>
+            
             <div className="mt-4">
               <button
                 onClick={handleRefresh}
