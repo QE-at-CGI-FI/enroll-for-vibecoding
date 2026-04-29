@@ -50,7 +50,7 @@ export const SESSIONS: Session[] = [
   }
 ];
 
-export const DEFAULT_SESSION_ID = 'session-1';
+export const DEFAULT_SESSION_ID = 'session-3';
 
 // Second session enrollment restriction
 export const SECOND_SESSION_CUTOFF = new Date('2026-02-10T08:00:00+02:00'); // Feb 10, 2026, 8 AM Finnish time
