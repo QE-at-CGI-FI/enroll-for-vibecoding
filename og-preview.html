@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1200px; height: 630px; overflow: hidden; background: #0a0a0f; }
+</style>
+</head>
+<body>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Deep dark background gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="60%" stop-color="#0d0e1a"/>
+      <stop offset="100%" stop-color="#070714"/>
+    </linearGradient>
+    <!-- Neon glow for accent shapes -->
+    <radialGradient id="glow1" cx="30%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="75%" cy="65%" r="45%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow3" cx="55%" cy="20%" r="35%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Text gradient for headline -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e879f9"/>
+      <stop offset="45%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <!-- Subtle grid lines filter -->
+    <filter id="blur4">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <filter id="blur20">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <filter id="blur60">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <!-- Glow filter for text -->
+    <filter id="textGlow" x="-10%" y="-30%" width="120%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="subtleGlow" x="-5%" y="-20%" width="110%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Noise texture -->
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noiseOut"/>
+      <feColorMatrix type="saturate" values="0" in="noiseOut" result="grayNoise"/>
+      <feBlend in="SourceGraphic" in2="grayNoise" mode="overlay" result="blended"/>
+      <feComposite in="blended" in2="SourceGraphic" operator="in"/>
+    </filter>
+    <clipPath id="card">
+      <rect width="1200" height="630" rx="0"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <!-- Base background -->
+    <rect width="1200" height="630" fill="url(#bg)"/>
+
+    <!-- Atmospheric glow blobs -->
+    <rect width="1200" height="630" fill="url(#glow1)" filter="url(#blur60)"/>
+    <rect width="1200" height="630" fill="url(#glow2)" filter="url(#blur60)"/>
+    <rect width="1200" height="630" fill="url(#glow3)" filter="url(#blur60)"/>
+
+    <!-- Grid lines - horizontal -->
+    <g opacity="0.07" stroke="#7c3aed" stroke-width="1">
+      <line x1="0" y1="63" x2="1200" y2="63"/>
+      <line x1="0" y1="126" x2="1200" y2="126"/>
+      <line x1="0" y1="189" x2="1200" y2="189"/>
+      <line x1="0" y1="252" x2="1200" y2="252"/>
+      <line x1="0" y1="315" x2="1200" y2="315"/>
+      <line x1="0" y1="378" x2="1200" y2="378"/>
+      <line x1="0" y1="441" x2="1200" y2="441"/>
+      <line x1="0" y1="504" x2="1200" y2="504"/>
+      <line x1="0" y1="567" x2="1200" y2="567"/>
+    </g>
+    <!-- Grid lines - vertical -->
+    <g opacity="0.07" stroke="#7c3aed" stroke-width="1">
+      <line x1="100" y1="0" x2="100" y2="630"/>
+      <line x1="200" y1="0" x2="200" y2="630"/>
+      <line x1="300" y1="0" x2="300" y2="630"/>
+      <line x1="400" y1="0" x2="400" y2="630"/>
+      <line x1="500" y1="0" x2="500" y2="630"/>
+      <line x1="600" y1="0" x2="600" y2="630"/>
+      <line x1="700" y1="0" x2="700" y2="630"/>
+      <line x1="800" y1="0" x2="800" y2="630"/>
+      <line x1="900" y1="0" x2="900" y2="630"/>
+      <line x1="1000" y1="0" x2="1000" y2="630"/>
+      <line x1="1100" y1="0" x2="1100" y2="630"/>
+    </g>
+
+    <!-- Decorative geometric shapes — right side -->
+    <!-- Large circle outline -->
+    <circle cx="950" cy="315" r="260" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.2"/>
+    <circle cx="950" cy="315" r="200" fill="none" stroke="#06b6d4" stroke-width="0.8" opacity="0.15"/>
+    <circle cx="950" cy="315" r="140" fill="none" stroke="#e879f9" stroke-width="0.6" opacity="0.15"/>
+    <!-- Inner filled circle with gradient glow -->
+    <circle cx="950" cy="315" r="80" fill="#7c3aed" opacity="0.06" filter="url(#blur20)"/>
+    <circle cx="950" cy="315" r="50" fill="#a78bfa" opacity="0.12" filter="url(#blur4)"/>
+
+    <!-- Diagonal accent lines -->
+    <line x1="650" y1="0" x2="1200" y2="400" stroke="#38bdf8" stroke-width="0.7" opacity="0.12"/>
+    <line x1="700" y1="0" x2="1200" y2="350" stroke="#e879f9" stroke-width="0.5" opacity="0.1"/>
+    <line x1="600" y1="630" x2="1200" y2="100" stroke="#a78bfa" stroke-width="0.5" opacity="0.1"/>
+
+    <!-- Small decorative dots -->
+    <circle cx="950" cy="315" r="4" fill="#e879f9" opacity="0.8"/>
+    <circle cx="1070" cy="200" r="3" fill="#38bdf8" opacity="0.6"/>
+    <circle cx="840" cy="430" r="2.5" fill="#a78bfa" opacity="0.5"/>
+    <circle cx="1100" cy="420" r="2" fill="#f59e0b" opacity="0.5"/>
+    <circle cx="880" cy="180" r="2" fill="#06b6d4" opacity="0.5"/>
+
+    <!-- CODE BLOCK decorative element — right area -->
+    <rect x="820" y="250" width="220" height="130" rx="8" fill="#ffffff" fill-opacity="0.03" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.3"/>
+    <!-- Fake code lines -->
+    <rect x="836" y="268" width="80" height="6" rx="3" fill="#e879f9" opacity="0.5"/>
+    <rect x="924" y="268" width="40" height="6" rx="3" fill="#38bdf8" opacity="0.4"/>
+    <rect x="836" y="284" width="60" height="6" rx="3" fill="#a78bfa" opacity="0.4"/>
+    <rect x="836" y="300" width="100" height="6" rx="3" fill="#38bdf8" opacity="0.3"/>
+    <rect x="844" y="316" width="70" height="6" rx="3" fill="#f59e0b" opacity="0.45"/>
+    <rect x="844" y="332" width="50" height="6" rx="3" fill="#e879f9" opacity="0.4"/>
+    <rect x="836" y="348" width="85" height="6" rx="3" fill="#a78bfa" opacity="0.35"/>
+    <!-- Window dots -->
+    <circle cx="836" cy="258" r="4" fill="#ff5f57" opacity="0.7"/>
+    <circle cx="850" cy="258" r="4" fill="#ffbd2e" opacity="0.7"/>
+    <circle cx="864" cy="258" r="4" fill="#28c840" opacity="0.7"/>
+
+    <!-- Left content area -->
+    <!-- CGI badge / organizer -->
+    <rect x="72" y="68" width="130" height="32" rx="16" fill="#ffffff" fill-opacity="0.06" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.5"/>
+    <text x="137" y="89" font-family="'Courier New', monospace" font-size="12" fill="#a78bfa" text-anchor="middle" letter-spacing="2">CGI FINLAND</text>
+
+    <!-- VIBE tag pill -->
+    <rect x="72" y="118" width="78" height="26" rx="5" fill="#7c3aed" fill-opacity="0.25" stroke="#7c3aed" stroke-width="1" stroke-opacity="0.7"/>
+    <text x="111" y="135" font-family="'Courier New', monospace" font-size="11" fill="#c4b5fd" text-anchor="middle" letter-spacing="1">WORKSHOP</text>
+
+    <!-- Main headline — "VIBE" -->
+    <text x="72" y="260" font-family="Georgia, 'Times New Roman', serif" font-size="148" font-weight="700" fill="url(#titleGrad)" filter="url(#textGlow)" letter-spacing="-4" opacity="0.97">VIBE</text>
+
+    <!-- CODING -->
+    <text x="74" y="350" font-family="Georgia, 'Times New Roman', serif" font-size="84" font-weight="400" fill="#e2e8f0" opacity="0.9" letter-spacing="14">CODING</text>
+
+    <!-- Divider line -->
+    <line x1="72" y1="378" x2="560" y2="378" stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
+
+    <!-- Subtitle -->
+    <text x="72" y="412" font-family="'Courier New', monospace" font-size="18" fill="#94a3b8" letter-spacing="1">Build real products with AI — enroll now</text>
+
+    <!-- Bottom bar -->
+    <rect x="0" y="580" width="1200" height="50" fill="#7c3aed" fill-opacity="0.06"/>
+    <line x1="0" y1="580" x2="1200" y2="580" stroke="#7c3aed" stroke-width="1" opacity="0.3"/>
+
+    <!-- URL hint bottom left -->
+    <text x="72" y="611" font-family="'Courier New', monospace" font-size="13" fill="#64748b" letter-spacing="1">qe-at-cgi-fi.github.io/enroll-for-vibecoding</text>
+
+    <!-- Enroll CTA bottom right -->
+    <rect x="990" y="593" width="142" height="32" rx="16" fill="#7c3aed" fill-opacity="0.7"/>
+    <text x="1061" y="613" font-family="'Courier New', monospace" font-size="13" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">ENROLL NOW →</text>
+
+    <!-- Noise overlay for depth -->
+    <rect width="1200" height="630" fill="transparent" filter="url(#noise)" opacity="0.04"/>
+  </g>
+</svg>
+</body>
+</html>
