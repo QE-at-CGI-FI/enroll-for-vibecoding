@@ -33,3 +33,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+enrollments-2026-04-29.txt
+unique-still-in-queue.txt

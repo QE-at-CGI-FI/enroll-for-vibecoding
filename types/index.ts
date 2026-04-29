@@ -41,6 +41,12 @@ export const SESSIONS: Session[] = [
     date: new Date('2026-04-07'),
     timeSlot: '11-14',
     description: 'Second Vibe Coding Workshop'
+  },
+  {
+    id: 'session-3',
+    date: new Date('2026-05-27'),
+    timeSlot: '11-14',
+    description: 'Third Vibe Coding Workshop'
   }
 ];
 
